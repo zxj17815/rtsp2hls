@@ -78,7 +78,10 @@ func (c *Camera) CloseCamera() (status bool, err error) {
 	} else {
 		p.Kill()
 		p.Release()
-		DB.Model(c).Update("State", 0)
+		DB.Model(&c).Select("Pid", "State").Updates(Camera{
+			Pid:   0,
+			State: 0,
+		})
 		status = true
 	}
 	return status, err
@@ -88,6 +91,7 @@ func KeepAlive(cmd *exec.Cmd, camera *Camera) {
 	err := cmd.Wait()
 	if err != nil {
 		time.Sleep(5 * time.Second)
+		DB.First(&camera, camera.ID)
 		if camera.State != 0 {
 			HlsStart(camera)
 		}
@@ -95,7 +99,7 @@ func KeepAlive(cmd *exec.Cmd, camera *Camera) {
 }
 
 func HlsStart(camera *Camera) (pid int, err error) {
-	staticFile := "D:\\hls\\" + camera.HlsFileStatic
+	staticFile := camera.HlsFileStatic
 
 	cmd := exec.Command("ffmpeg", "-i", camera.RtspUrl, "-c", "copy", "-f", "hls", "-hls_time", "2.0", "-hls_list_size", "1", "-hls_wrap", "5", staticFile)
 
