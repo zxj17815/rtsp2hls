@@ -41,6 +41,20 @@ func GetCamera(id string) (cameras Camera, err error) {
 	return
 }
 
+func (c *Camera) CreateCamera() (created bool, err error) {
+	c.CreateTime = time.Now()
+	c.UpdateTime = time.Now()
+	result := DB.Create(&c)
+	if result.Error == nil {
+		created = true
+		err = nil
+	} else {
+		created = false
+		err = result.Error
+	}
+	return created, err
+}
+
 func (c *Camera) UpdateCamera(data map[string]interface{}) (updated bool, err error) {
 	data["UpdateTime"] = time.Now()
 	delete(data, "CreateTime")

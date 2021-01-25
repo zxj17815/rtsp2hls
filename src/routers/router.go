@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"rtsp2hls/src/help"
@@ -18,6 +19,9 @@ func InitRouter() *gin.Engine {
 
 	r.GET("/cameras", func(c *gin.Context) {
 		GetCameras(c)
+	})
+	r.POST("/cameras", func(c *gin.Context) {
+		CreateCameras(c)
 	})
 	r.PATCH("/camera/:id", func(c *gin.Context) {
 		UpdateCamera(c)
@@ -38,6 +42,46 @@ func GetCameras(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"data": data,
 	})
+}
+
+func CreateCameras(c *gin.Context) {
+	camera := models.Camera{}
+	error := c.ShouldBindJSON(&camera)
+	if error == nil {
+		valid := validation.Validation{}
+		valid.Required(camera.RtspUrl, "RtspUrl").Message("RtspUrl is not null")
+		valid.Required(camera.Name, "Name").Message("Name is not null")
+		valid.Required(camera.HlsFileStatic, "HlsFileStatic").Message("HlsFileStatic is not null")
+		valid.Required(camera.HlsFileUrl, "HlsFileUrl").Message("HlsFileUrl is not null")
+		valid.MaxSize(camera.Name, 10, "name").Message("Name max-length is 10")
+		if !valid.HasErrors() {
+			if created, err := camera.CreateCamera(); created {
+				c.JSON(http.StatusOK, gin.H{
+					"msg":  "successful",
+					"data": camera,
+				})
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"msg":  "error",
+					"data": err,
+				})
+			}
+		} else {
+			data := make(map[string]interface{})
+			for _, err := range valid.Errors {
+				data[err.Key] = err.Message
+			}
+			c.JSON(http.StatusBadRequest, gin.H{
+				"msg":  "error",
+				"data": data,
+			})
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"msg":  "error",
+			"data": error,
+		})
+	}
 }
 
 func UpdateCamera(c *gin.Context) {
