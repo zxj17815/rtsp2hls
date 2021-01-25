@@ -14,7 +14,7 @@ rtsp2hle.exe
 
 #### Set
 Set Camera rtsp info with api      
-GET `http://localhost:8888/cameras` all cameras info
+GET `http://localhost:8888/cameras` all cameras info    
 POST `http://localhost:8888/cameras` create new camera 
 ```json
 {
