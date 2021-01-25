@@ -1,7 +1,7 @@
 ### RTSP2HLS Server
 
 #### Before
-This program needs to use [FFmpeg]: https://ffmpeg.org/download.html  to work
+This program needs to use [FFmpeg](https://ffmpeg.org/download.html):   to work
 The current conversion parameters in the program are fixed:
 `ffmpeg -i "rtspurl" -c copy -f hls -hls_time 2.0 -hls_list_size 1 -hls_wrap 5 HlsFileStatic`
 
