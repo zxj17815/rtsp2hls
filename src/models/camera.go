@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -103,11 +104,16 @@ func (c *Camera) CloseCamera() (status bool, err error) {
 
 func KeepAlive(cmd *exec.Cmd, camera *Camera) {
 	err := cmd.Wait()
+	fmt.Println(err)
 	if err != nil {
-		time.Sleep(5 * time.Second)
-		DB.First(&camera, camera.ID)
-		if camera.State != 0 {
-			HlsStart(camera)
+		log.Println("异常退出")
+	}
+	time.Sleep(10 * time.Second)
+	DB.First(&camera, camera.ID)
+	if camera.State != 0 {
+		_, err = HlsStart(camera)
+		for err != nil {
+			_, err = HlsStart(camera)
 		}
 	}
 }
@@ -120,7 +126,6 @@ func HlsStart(camera *Camera) (pid int, err error) {
 	if runtime.GOOS == "windows" {
 		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	}
-
 	err = cmd.Start()
 
 	if err != nil {
